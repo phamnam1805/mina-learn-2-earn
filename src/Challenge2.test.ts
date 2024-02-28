@@ -75,33 +75,7 @@ describe('Challenge2', () => {
         expect(processedMessageNumber).toEqual(Field(0));
     });
 
-    // it('Run with dataset1', async () => {
-    //     await localDeploy();
-    //     let proof = await CheckBatchOfMessages.baseCase(
-    //         zkApp.processedMessageNumber.get()
-    //     );
-    //     for (let i = 0; i < dataset1.length; i++) {
-    //         const message = dataset1[i];
-    //         proof = await CheckBatchOfMessages.step(
-    //             Field(message[0]),
-    //             proof,
-    //             Field(message[1]),
-    //             Field(message[2]),
-    //             Field(message[3]),
-    //             Field(message[4])
-    //         );
-    //     }
-    //     // check the proof
-    //     const txn = await Mina.transaction(senderAccount, () => {
-    //         zkApp.check(proof);
-    //     });
-    //     await txn.prove();
-    //     await txn.sign([senderKey]).send();
-    //     Provable.log(zkApp.processedMessageNumber.get());
-    //     expect(zkApp.processedMessageNumber.get()).toEqual(Field(5));
-    // });
-
-    it('Run with dataset2', async () => {
+    it('Run with dataset1', async () => {
         await localDeploy();
         let proof = await CheckBatchOfMessages.baseCase(
             zkApp.processedMessageNumber.get()
@@ -123,7 +97,31 @@ describe('Challenge2', () => {
         });
         await txn.prove();
         await txn.sign([senderKey]).send();
-        Provable.log(zkApp.processedMessageNumber.get());
-        // expect(zkApp.processedMessageNumber.get()).toEqual(Field(5));
+        expect(zkApp.processedMessageNumber.get()).toEqual(Field(5));
+    });
+
+    it('Run with dataset2', async () => {
+        await localDeploy();
+        let proof = await CheckBatchOfMessages.baseCase(
+            zkApp.processedMessageNumber.get()
+        );
+        for (let i = 0; i < dataset2.length; i++) {
+            const message = dataset2[i];
+            proof = await CheckBatchOfMessages.step(
+                Field(message[0]),
+                proof,
+                Field(message[1]),
+                Field(message[2]),
+                Field(message[3]),
+                Field(message[4])
+            );
+        }
+        // check the proof
+        const txn = await Mina.transaction(senderAccount, () => {
+            zkApp.check(proof);
+        });
+        await txn.prove();
+        await txn.sign([senderKey]).send();
+        expect(zkApp.processedMessageNumber.get()).toEqual(Field(155));
     });
 });
