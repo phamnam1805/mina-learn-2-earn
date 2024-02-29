@@ -10,7 +10,15 @@ import {
     Void,
     Provable,
     Bool,
+    UInt32,
 } from 'o1js';
+
+export class MessageDetails extends Struct({
+    agentId: UInt32,
+    agentXLocation: UInt32,
+    agentYLocation: UInt32,
+    checkSum: UInt32,
+}) {}
 
 export class CheckBatchOfMessagesOutput extends Struct({
     currentProcessedMessageNumber: Field,
@@ -52,18 +60,12 @@ export const CheckBatchOfMessages = ZkProgram({
         step: {
             privateInputs: [
                 SelfProof<Field, CheckBatchOfMessagesOutput>,
-                Field,
-                Field,
-                Field,
-                Field,
+                MessageDetails,
             ],
             method(
                 messageNumber: Field,
                 earlierProof: SelfProof<Field, CheckBatchOfMessagesOutput>,
-                agentId: Field,
-                agentXLocation: Field,
-                agentYLocation: Field,
-                checkSum: Field
+                messageDetails: MessageDetails
             ): CheckBatchOfMessagesOutput {
                 earlierProof.verify();
                 return Provable.if(
@@ -72,7 +74,7 @@ export const CheckBatchOfMessages = ZkProgram({
                     ),
                     earlierProof.publicOutput,
                     Provable.if(
-                        agentId.equals(Field(0)),
+                        messageDetails.agentId.equals(UInt32.zero),
                         new CheckBatchOfMessagesOutput({
                             currentProcessedMessageNumber:
                                 earlierProof.publicOutput
@@ -80,26 +82,44 @@ export const CheckBatchOfMessages = ZkProgram({
                             previousProcessedMessageNumber: messageNumber,
                         }),
                         Provable.if(
-                            agentId
-                                .greaterThanOrEqual(Field(0))
-                                .and(agentId.lessThanOrEqual(Field(3000)))
+                            messageDetails.agentId
+                                .greaterThanOrEqual(UInt32.zero)
                                 .and(
-                                    agentXLocation.greaterThanOrEqual(Field(0))
+                                    messageDetails.agentId.lessThanOrEqual(
+                                        new UInt32(3000)
+                                    )
                                 )
                                 .and(
-                                    agentXLocation.lessThanOrEqual(Field(15000))
-                                )
-                                .and(agentYLocation.greaterThan(Field(5000)))
-                                .and(
-                                    agentYLocation.lessThanOrEqual(Field(20000))
+                                    messageDetails.agentXLocation.greaterThanOrEqual(
+                                        UInt32.zero
+                                    )
                                 )
                                 .and(
-                                    agentId
-                                        .add(agentXLocation)
-                                        .add(agentYLocation)
-                                        .equals(checkSum)
+                                    messageDetails.agentXLocation.lessThanOrEqual(
+                                        new UInt32(15000)
+                                    )
                                 )
-                                .and(agentXLocation.lessThan(agentYLocation)),
+                                .and(
+                                    messageDetails.agentYLocation.greaterThan(
+                                        new UInt32(5000)
+                                    )
+                                )
+                                .and(
+                                    messageDetails.agentYLocation.lessThanOrEqual(
+                                        new UInt32(20000)
+                                    )
+                                )
+                                .and(
+                                    messageDetails.agentId
+                                        .add(messageDetails.agentXLocation)
+                                        .add(messageDetails.agentYLocation)
+                                        .equals(messageDetails.checkSum)
+                                )
+                                .and(
+                                    messageDetails.agentXLocation.lessThan(
+                                        messageDetails.agentYLocation
+                                    )
+                                ),
                             new CheckBatchOfMessagesOutput({
                                 currentProcessedMessageNumber:
                                     earlierProof.publicOutput
@@ -110,46 +130,6 @@ export const CheckBatchOfMessages = ZkProgram({
                         )
                     )
                 );
-                // if (
-                //     earlierProof.publicOutput.previousProcessedMessageNumber
-                //         .greaterThan(messageNumber)
-                //         .equals(true)
-                // ) {
-                //     return earlierProof.publicOutput;
-                // }
-                // if (agentId.equals(Field(0)).equals(true)) {
-                //     return new CheckBatchOfMessagesOutput({
-                //         currentProcessedMessageNumber:
-                //             earlierProof.publicOutput
-                //                 .currentProcessedMessageNumber,
-                //         previousProcessedMessageNumber: messageNumber,
-                //     });
-                // }
-                // if (
-                //     agentId
-                //         .greaterThanOrEqual(Field(0))
-                //         .and(agentId.lessThanOrEqual(Field(3000)))
-                //         .and(agentXLocation.greaterThanOrEqual(Field(0)))
-                //         .and(agentXLocation.lessThanOrEqual(Field(15000)))
-                //         .and(agentYLocation.greaterThan(Field(5000)))
-                //         .and(agentYLocation.lessThanOrEqual(Field(20000)))
-                //         .and(
-                //             agentId
-                //                 .add(agentXLocation)
-                //                 .add(agentYLocation)
-                //                 .equals(checkSum)
-                //         )
-                //         .and(agentXLocation.lessThan(agentYLocation))
-                //         .equals(true)
-                // ) {
-                //     return new CheckBatchOfMessagesOutput({
-                //         currentProcessedMessageNumber:
-                //             earlierProof.publicOutput
-                //                 .currentProcessedMessageNumber,
-                //         previousProcessedMessageNumber: messageNumber,
-                //     });
-                // }
-                // return earlierProof.publicOutput;
             },
         },
     },

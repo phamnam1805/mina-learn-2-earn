@@ -5,8 +5,9 @@ import {
     PublicKey,
     AccountUpdate,
     Provable,
+    UInt32,
 } from 'o1js';
-import { Challenge2, CheckBatchOfMessages } from './Challenge2';
+import { Challenge2, CheckBatchOfMessages, MessageDetails } from './Challenge2';
 import { ZkAppCache } from './Constants';
 
 let proofsEnabled = true;
@@ -29,6 +30,8 @@ const dataset2 = [
     [156, 1323, 13823, 14222, 29377],
 ];
 
+const dataset3 = [];
+
 describe('Challenge2', () => {
     let deployerAccount: PublicKey,
         deployerKey: PrivateKey,
@@ -40,8 +43,8 @@ describe('Challenge2', () => {
 
     beforeAll(async () => {
         if (proofsEnabled) {
-            // Provable.log(CheckBatchOfMessages.analyzeMethods());
-            // Provable.log(Challenge2.analyzeMethods());
+            Provable.log(CheckBatchOfMessages.analyzeMethods());
+            Provable.log(Challenge2.analyzeMethods());
             await CheckBatchOfMessages.compile({ cache: ZkAppCache });
             await Challenge2.compile({ cache: ZkAppCache });
         }
@@ -82,13 +85,17 @@ describe('Challenge2', () => {
         );
         for (let i = 0; i < dataset1.length; i++) {
             const message = dataset1[i];
+            const messageNumber = Field(message[0]);
+            const messageDetail = new MessageDetails({
+                agentId: new UInt32(message[1]),
+                agentXLocation: new UInt32(message[2]),
+                agentYLocation: new UInt32(message[3]),
+                checkSum: new UInt32(message[4]),
+            });
             proof = await CheckBatchOfMessages.step(
-                Field(message[0]),
+                messageNumber,
                 proof,
-                Field(message[1]),
-                Field(message[2]),
-                Field(message[3]),
-                Field(message[4])
+                messageDetail
             );
         }
         // check the proof
@@ -107,13 +114,17 @@ describe('Challenge2', () => {
         );
         for (let i = 0; i < dataset2.length; i++) {
             const message = dataset2[i];
+            const messageNumber = Field(message[0]);
+            const messageDetail = new MessageDetails({
+                agentId: new UInt32(message[1]),
+                agentXLocation: new UInt32(message[2]),
+                agentYLocation: new UInt32(message[3]),
+                checkSum: new UInt32(message[4]),
+            });
             proof = await CheckBatchOfMessages.step(
-                Field(message[0]),
+                messageNumber,
                 proof,
-                Field(message[1]),
-                Field(message[2]),
-                Field(message[3]),
-                Field(message[4])
+                messageDetail
             );
         }
         // check the proof
