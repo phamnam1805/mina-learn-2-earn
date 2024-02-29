@@ -30,6 +30,7 @@ const dataset2 = [
     [156, 1323, 13823, 14222, 29377],
 ];
 
+// 50 msgs, It takes about 1200 seconds to run on my computer - Macbook Pro M2 Pro
 const dataset3 = [
     [151, 2870, 10258, 8223, 21351],
     [152, 2191, 1962, 19515, 23677],
